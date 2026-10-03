@@ -6,7 +6,7 @@ import { getGlobalStyles, COLORS, DARK_COLORS, SPACING } from '../styling/Global
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 const courses = [
-  { id: '1', name: "Mobile App Dev", icon: 'cellphone', progress: 0.75, enrolled: true, timing: 'MWF 10:00 AM - 11:30 AM' },
+  { id: '1', name: "MAD", icon: 'cellphone', progress: 0.75, enrolled: true, timing: 'MWF 10:00 AM - 11:30 AM' },
   { id: '2', name: "Artificial Intelligence", icon: 'robot', progress: 0.5, enrolled: true, timing: 'TTh 2:00 PM - 3:30 PM' },
   { id: '3', name: "Database Systems", icon: 'database', progress: 0, enrolled: false, timing: 'MWF 1:00 PM - 2:30 PM' },
   { id: '4', name: "Operating Systems", icon: 'microsoft-windows', progress: 0, enrolled: false, timing: 'TTh 10:00 AM - 11:30 AM' },
