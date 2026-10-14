@@ -43,7 +43,7 @@ export default function SettingsScreen({ navigation }) {
         { text: "English", onPress: () => changeLanguage('en') },
 
         { text: "Urdu", onPress: () => changeLanguage('ur') },
-        { text: "Russian", onPress: () => changeLanguage('es') },
+        { text: "Spanish", onPress: () => changeLanguage('es') },
 
         { text: "Arabic", onPress: () => changeLanguage('ur') },
         { text: "pashto", onPress: () => changeLanguage('es') }, 
