@@ -1,43 +1,72 @@
 
-name: Deploy to EC2
+name: Build and Deploy to AWS EC2
 
 on:
   push:
     branches:
       - main
+
   workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
-  deploy:
-    name: Deploy to EC2
+  build-and-deploy:
+    name: Build and Deploy
     runs-on: ubuntu-24.04
 
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
+      # 1. Get latest GitHub code
+      - name: Checkout Repository
+        uses: actions/checkout@v5
 
-      - name: Connect and Check Docker
+      # 2. Set up Docker Buildx
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # 3. Login to Docker Hub
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      # 4. Build and push Docker image
+      - name: Build and Push Docker Image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: |
+            aroush44/dotask:latest
+            aroush44/dotask:${{ github.sha }}
+
+      # 5. Connect to EC2 and deploy latest image
+      - name: Deploy to EC2
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
+          script_stop: true
           script: |
             echo "Connected to EC2"
 
-            echo "Checking Docker..."
-            sudo docker --version
+            echo "Pulling latest Docker image..."
+            sudo docker pull aroush44/dotask:latest
 
-            echo "Listing all containers..."
-            sudo docker ps -a
+            echo "Removing old application container..."
+            sudo docker rm -f dotask-app || true
 
-            echo "Checking Docker image..."
-            sudo docker images aroush44/dotask
+            echo "Starting updated application..."
+            sudo docker run -d \
+              --name dotask-app \
+              --restart unless-stopped \
+              -p 80:3000 \
+              aroush44/dotask:latest
 
-            echo "Checking application logs..."
-            sudo docker logs --tail 30 gifted_raman
+            echo "Checking deployment..."
+            sudo docker ps
 
-            echo "Docker inspection completed!"
+            echo "Deployment completed successfully!"
