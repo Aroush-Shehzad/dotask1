@@ -1,11 +1,10 @@
 
-name: Deploy Docker Container to EC2
+name: Deploy to EC2
 
 on:
   push:
     branches:
       - main
-
   workflow_dispatch:
 
 permissions:
@@ -14,37 +13,46 @@ permissions:
 jobs:
   deploy:
     name: Deploy to EC2
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     steps:
-      # Step 1: Checkout repository
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      # Step 2: Connect to EC2 and restart Docker container
-      - name: Deploy Existing Docker Container
+      - name: Connect and Deploy to EC2
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
+          debug: true
+          script_stop: true
           script: |
-            echo "Connected to EC2 successfully"
+            echo "Successfully connected to EC2"
 
-            # Check Docker service
-            sudo systemctl start docker
+            echo "Checking Docker installation..."
+            sudo docker --version
 
-            # Check if container exists
-            if ! sudo docker container inspect student-portal >/dev/null 2>&1
+            echo "Checking Docker service..."
+            sudo systemctl status docker --no-pager
+
+            echo "Listing existing containers..."
+            sudo docker ps -a
+
+            echo "Checking student-portal container..."
+
+            if sudo docker container inspect student-portal >/dev/null 2>&1
             then
-              echo "Docker container student-portal not found!"
+              echo "Container found!"
+
+              sudo docker restart student-portal
+
+              echo "Checking deployment status..."
+              sudo docker ps --filter name=student-portal
+
+              echo "Deployment completed!"
+            else
+              echo "ERROR: student-portal container not found!"
+              echo "Check the container name using docker ps -a"
               exit 1
             fi
-
-            # Restart existing container
-            sudo docker restart student-portal
-
-            # Verify container status
-            sudo docker ps --filter name=student-portal
-
-            echo "Deployment completed successfully!"
