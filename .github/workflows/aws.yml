@@ -19,40 +19,25 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Connect and Deploy to EC2
+      - name: Connect and Check Docker
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
-          debug: true
-          script_stop: true
           script: |
-            echo "Successfully connected to EC2"
+            echo "Connected to EC2"
 
-            echo "Checking Docker installation..."
+            echo "Checking Docker..."
             sudo docker --version
 
-            echo "Checking Docker service..."
-            sudo systemctl status docker --no-pager
-
-            echo "Listing existing containers..."
+            echo "Listing all containers..."
             sudo docker ps -a
 
-            echo "Checking student-portal container..."
+            echo "Checking Docker image..."
+            sudo docker images aroush44/dotask
 
-            if sudo docker container inspect student-portal >/dev/null 2>&1
-            then
-              echo "Container found!"
+            echo "Checking application logs..."
+            sudo docker logs --tail 30 gifted_raman
 
-              sudo docker restart student-portal
-
-              echo "Checking deployment status..."
-              sudo docker ps --filter name=student-portal
-
-              echo "Deployment completed!"
-            else
-              echo "ERROR: student-portal container not found!"
-              echo "Check the container name using docker ps -a"
-              exit 1
-            fi
+            echo "Docker inspection completed!"
