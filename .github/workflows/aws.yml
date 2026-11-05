@@ -1,0 +1,50 @@
+
+name: Deploy Docker Container to EC2
+
+on:
+  push:
+    branches:
+      - main
+
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: Deploy to EC2
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout repository
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # Step 2: Connect to EC2 and restart Docker container
+      - name: Deploy Existing Docker Container
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            echo "Connected to EC2 successfully"
+
+            # Check Docker service
+            sudo systemctl start docker
+
+            # Check if container exists
+            if ! sudo docker container inspect student-portal >/dev/null 2>&1
+            then
+              echo "Docker container student-portal not found!"
+              exit 1
+            fi
+
+            # Restart existing container
+            sudo docker restart student-portal
+
+            # Verify container status
+            sudo docker ps --filter name=student-portal
+
+            echo "Deployment completed successfully!"
